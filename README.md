@@ -1,72 +1,46 @@
-# Rails from Scratch
-
-A simple guide to installing rails on WSL. Not super unique, but complete....
+# Ultimate guide
+This guide is based off the [original one by Matthew Schultz](https://github.com/MatthewSchultz/Install-Rails-on-WSL) and [this one from GoRails](https://gorails.com/setup/windows/11).
+It also considers you are installing rails >= 7.x.
 
 ## Step 1 - WSL
 
-* Admin powershell, execute `Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux`
-* Reboot
-* In Microsoft Store, find Ubuntu, download that stuffs...
-* Hit the Launch button in store, or find Ubuntu in start menu. Watch and wait while it unpacks itself.
-* Run `sudo apt update && sudo apt upgrade` to start getting packages
-
-## Step 2 - Install NodeJS and YARN
-
-Rails 6 now requires the YARN package manager to function, since it likes webpack more than other stuff now. It also tends to be built heavily around Node packages. While it's theoretically possible to use Rails without these things, in modern web apps, Node and YARN should be installed.
-
-### Setup NodeJS as a Javascript runtime
-
+On Windows 11 it is easier to just do:
 ```bash
-curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-sudo apt install -y nodejs
+wsl --install
 ```
 
-This sets up NodeJS by downloading a setup script from the NodeJS site and running it. This is superior to simply installing node Ubuntu's managed repos, since that version is ususally woefully out of date.
+We are going with the default distro (Ubuntu) for simplicity.
 
-Be sure to change the version your trying to get in the URI - the above URI gets the latest version of the v14 major branch.
-
-### Setup the YARN package manager
-
-First, let's add the YARN server to the package repo list (since the one that is included with repo lists is nearly guaranteed to be out of date):
-
+You can also see what other distros you can install by doing:
 ```bash
-curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-sudo apt update
+wsl --list --online
 ```
 
-Now install YARN...
-
+And install your preferred one with:
 ```bash
-sudo apt install yarn
+wsl --install <Distribution Name>
 ```
 
-...and test
+Finish the installation and reboot your PC. Then run `sudo apt update && sudo apt upgrade` to start getting packages.
+You can search for "Ubuntu" in the Windows Start Menu anytime to open the Ubuntu terminal.
 
+## Step 2 - Install dependencies for Ruby
+
+The first step is to install dependencies for compiling Ruby.
+
+Open your Terminal and run the following commands to install them.
 ```bash
-yarn --version
-```
-
-Rails 6, as of this writing, requires at least YARN 1.0.
-
-## Step 3 - Pre-Installation
-
-### Setup Dependencies
-
-```bash
-sudo apt install curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev
-sudo apt install libpq-dev
+sudo apt-get update
+sudo apt install build-essential rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev curl zlib1g-dev libssl-dev libreadline-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev software-properties-common libffi-dev
 sudo apt install imagemagick
 sudo apt install graphviz
 ```
 
 Here we install a bunch of dependencies, of which libxml2-dev is particularly important for nokogiri.
 
-The second line can be omitted if (for some probably terrible reason, you are not using postgresql).
+The second line installs imagemagick, a critical image-processing library. If you know you don't need this it's ok to omit, but it's a common enough library I suggest installing it.
 
-The third line install imagemagick, a critical image-processing library. If you know you don't need this it's ok to omit, but it's a common enough library I suggest installing it.
-
-The fourth line installs graphviz, a graphical generation utility. Not sure how important this is, but I use it often.
+The third line installs graphviz, a graphical generation utility. Not sure how important this is, but I use it often.
 
 ### Setup QOL Tools
 
@@ -76,37 +50,44 @@ sudo apt-get install tmux tty-clock htop cowsay postgresql-client fortune
 
 These are somewhat optional, but make living in semi-linux bearable.
 
-## Step 4 - Ruby via rbenv
-
-This will install Ruby via rbenv. Doing it via ruby-full seems to suck.
+## Step 3 - Install Ruby
+Next, we'll install Ruby using a version manager called Mise. This allows you to easily update Ruby and switch between versions anytime.
 
 ```bash
-cd
-git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-exec $SHELL
+curl https://mise.run | sh
+echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.bashrc
+source ~/.bashrc
+```
+Then install Ruby with Mise:
 
-git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
-echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
-exec $SHELL
-
-rbenv install 3.1.2
-rbenv global 3.1.2
-ruby -v
+```bash
+mise use --global ruby@3
 ```
 
-Now, write the following to `~/.gemrc` (this is optional, of course, but I mean, who really wants to wait for everything to compile it's documentation):
+Confirm that Ruby is installed and works:
 
 ```bash
-echo 'gem: --no-document' >> ~/.gemrc
+ruby --version
+#=> 3.4.7
 ```
 
-Finally:
+You also want to ensure you're using the latest version of Rubygems.
 
 ```bash
-gem install bundler
-rbenv rehash
+gem update --system
+```
+
+## Step 4 - Installing Node
+
+Optionally, if you plan to use Node.js for handling assets, you can use Mise to install Node as well.
+
+```bash
+mise use --global node@24.11.0
+```
+
+```bash
+node -v
+#=> 24.11.0
 ```
 
 ## Step 5 - Setup GIT
@@ -115,12 +96,32 @@ rbenv rehash
 git config --global color.ui true
 git config --global user.name "YOUR NAME"
 git config --global user.email "YOUR@EMAIL.com"
-ssh-keygen -t rsa -b 4096 -C "YOUR@EMAIL.com"
+ssh-keygen -t ed25519 -C "YOUR@EMAIL.com"
 ```
 
-This sets up GIT and runs keygen. Now `cat ~/.ssh/id_rsa.pub` to get the key to paste into BitBucket/GitHub. Make sure to make a new window if you're in a tmux pane so you can copy that noise.
+The next step is to take the newly generated SSH key and add it to your Github or Bitbucket account. You want to copy and paste the output of the following command and paste it here.
 
-Now do `ssh -T git@bitbucket.org` or `ssh -T git@github.com` to test it.
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Once you've done this, you can check and see if it worked:
+
+```bash
+ssh -T git@github.com
+```
+
+or
+
+```bash
+ssh -T git@bitbucket.org
+```
+
+You should get a message like this:
+
+```bash
+Hi your_name! You've successfully authenticated, but GitHub does not provide shell access.
+```
 
 ## Step 6 - Because we Can
 
@@ -130,33 +131,73 @@ gem install lolcat
 
 Helps make sure gems are working anyways.......not really. I just find lolcat funny.
 
-## Step 7 - Install the Rails
+## Step 7 - Installing Rails
+
+Choose the version of Rails you want to install:
 
 ```bash
-gem install rails
+gem install rails -v 8.1.1
 ```
 
-Here we are just going for the latest version, at the time of this writing, **6.0.3**.
+> Note: If you want to use [Solidus](https://github.com/solidusio/solidus), the latest supported version at the time of writing is 7.2. For your consideration.
 
-Because we installed all that dependencies in step 2, this *should* install nokogiri correctly.
-
-Test by `rails -v`
-
-## Step 8 - Change the Way WSL Handles CHMOD
-
-THIS STEP SHOULD NO LONGER BE REQUIRED - ONLY DO THIS IF YOU RUN INTO ISSUES.
-
-Do `sudo vim /etc/wsl.conf` - we need to write a wsl config to turn on metadata tracking for mounted noise. Into that file write:
+Now that you've installed Rails, you can run the rails -v command to make sure you have everything installed correctly:
 
 ```bash
-[automount]
-enabled = true
-options = "metadata"
-mountFsTab = false
+rails -v
+# Rails 8.1.1
 ```
 
-Now, restart the entire Ubuntu instance, and Rails will suddenly behave itself. Skipping this causes Rails to fail on Rails new with some complete rubbish about permissions...
+If you get a different result for some reason, it means your environment may not be setup properly.
+
+## Step 8 - Setting up PostgreSQL
+
+For PostgreSQL, we're going to add a new repository to easily install a recent version of Postgres.
+
+```bash
+sudo apt install postgresql libpq-dev
+sudo service postgresql start
+```
+
+You'll need to start postgresql each time you load your WSL environment.
+
+The postgres installation doesn't setup a user for you, so you'll need to follow these steps to create a user with permission to create databases. Feel free to replace zam with your username.
+
+```bash
+sudo -u postgres createuser zam -s
+# If you would like to set a password for the user, you can do the following
+sudo -u postgres psql
+postgres=# \password zam
+```
 
 ## Step 9 - Get to Project Directory
 
 Do `cd /mnt/<windows full path>` to get to the project directory. Project directories ARE case sensitive, use linux folder seperation, do not use the colon notation for drives, and the drive letter is lowercased, so `C:\Users\You\Projects\SomeFolder\` becomes `/mnt/c/Users/You/Projects/SomeFolder`.
+
+## Step 10 - Test it out
+Let's create your first Rails application on Windows!
+
+```bash
+rails new myapp -d postgresql -c tailwindcss
+```
+
+With this, we are creating a project using postgres as the DB and tailwind as the CSS framework.
+
+Then, move into the application directory
+```bash
+cd myapp
+```
+
+If you setup Postgres with a username/password, modify the config/database.yml file to contain the username/password that you specified above.
+
+Create the database
+```bash
+rake db:create
+```
+
+Start your server
+```bash
+rails server
+```
+
+You can now visit http://localhost:3000 to view your new website!
