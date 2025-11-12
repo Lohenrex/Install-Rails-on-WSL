@@ -70,10 +70,12 @@ These are somewhat optional, but make living in semi-linux bearable.
 ## Step 3 - Install Ruby
 Next, we'll install Ruby using a version manager called Mise. This allows you to easily update Ruby and switch between versions anytime.
 
+(If you skipped step 1.5, replace **zshrc** with **bashrc**)
+
 ```bash
 curl https://mise.run | sh
-echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.bashrc
-source ~/.bashrc
+echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.zshrc
+source ~/.zshrc
 ```
 Then install Ruby with Mise:
 
