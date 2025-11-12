@@ -24,6 +24,23 @@ wsl --install <Distribution Name>
 Finish the installation and reboot your PC. Then run `sudo apt update && sudo apt upgrade` to start getting packages.
 You can search for "Ubuntu" in the Windows Start Menu anytime to open the Ubuntu terminal.
 
+## Step 1.5 - (Optional) Install zsh and Oh My Zsh!
+I just love all the aliases and themes Oh My Zsh! offers, so I am including its installation in this guide.
+
+First we install zsh:
+```bash
+sudo apt install zsh
+zsh --version
+# Expected result: zsh 5.0.8 or more recent
+```
+
+Then we proceed with Oh My Zsh:
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+
+Once that is done, you may want to check [this](https://github.com/ohmyzsh/ohmyzsh/wiki#getting-started) for more information and customization.
+
 ## Step 2 - Install dependencies for Ruby
 
 The first step is to install dependencies for compiling Ruby.
@@ -77,7 +94,7 @@ You also want to ensure you're using the latest version of Rubygems.
 gem update --system
 ```
 
-## Step 4 - Installing Node
+## Step 4 - Install Node
 
 Optionally, if you plan to use Node.js for handling assets, you can use Mise to install Node as well.
 
@@ -131,7 +148,7 @@ gem install lolcat
 
 Helps make sure gems are working anyways.......not really. I just find lolcat funny.
 
-## Step 7 - Installing Rails
+## Step 7 - Install Rails
 
 Choose the version of Rails you want to install:
 
